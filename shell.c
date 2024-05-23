@@ -336,7 +336,7 @@ int main() {
                 command[index] = END_L_CHR;
                 printf("\n");
                 break;
-            } else if (ch == 27) {
+            } else if (ch == 27) { // Arrow keys
                 char seq[3];
                 if (read(STDIN_FILENO, &seq[0], 1) == 1 && read(STDIN_FILENO, &seq[1], 1) == 1) {
                     if (seq[0] == '[') {
@@ -352,6 +352,13 @@ int main() {
                             write(STDOUT_FILENO, &command, index);
                         }
                     }
+                }
+            } else if (ch == 127 || ch == '\b') { // Backspace key
+                if (index > 0) {
+                    index--;
+                    command[index] = '\0';
+                    clear_line();
+                    write(STDOUT_FILENO, &command, index);
                 }
             } else {
                 command[index++] = ch;
