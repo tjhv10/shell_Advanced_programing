@@ -98,7 +98,6 @@ void c_handler(int sig) {
     write(1, final_msg, strlen(final_msg));
 }
 
-
 void pipe_tasks(char *cmd) {
     char *parsed_command[LINE_COMMAND_SIZE];
     int commands = parse_command(parsed_command, cmd, PIPE_STR);
