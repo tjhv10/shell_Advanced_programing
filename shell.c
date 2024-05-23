@@ -52,14 +52,26 @@ char * get_variable(char *);
 void parse_if_statement(char *);
 
 int parse_command(char **parsed_command, char *cmd, const char *delimeter) {
+    char *cmd_copy = strdup(cmd); // Create a copy of the original command string
+    if (!cmd_copy) {
+        perror("strdup");
+        return -1; // Return an error if strdup fails
+    }
+
     char *token;
-    token = strtok(cmd, delimeter);
+    token = strtok(cmd_copy, delimeter);
     int counter = -1;
 
     while(token) {
         parsed_command[++counter] = malloc(strlen(token) + 1);
+        if (!parsed_command[counter]) {
+            perror("malloc");
+            free(cmd_copy);
+            return -1; // Return an error if malloc fails
+        }
         strcpy(parsed_command[counter], token);
-        if (delimeter == PIPE_STR) {
+
+        if (strcmp(delimeter, PIPE_STR) == 0) {
             if (parsed_command[counter][strlen(token) - 1] == EMPTY_CHAR) {
                 parsed_command[counter][strlen(token) - 1] = END_L_CHR;
             }
@@ -71,6 +83,8 @@ int parse_command(char **parsed_command, char *cmd, const char *delimeter) {
         token = strtok(NULL, delimeter);
     }
     parsed_command[++counter] = NULL;
+
+    free(cmd_copy); // Free the copy of the original command string
     return counter;
 }
 
@@ -83,6 +97,7 @@ void c_handler(int sig) {
     strcat(final_msg, END_L_STR);
     write(1, final_msg, strlen(final_msg));
 }
+
 
 void pipe_tasks(char *cmd) {
     char *parsed_command[LINE_COMMAND_SIZE];
@@ -172,7 +187,6 @@ void redirect_tasks(char *command, int direction) {
 void other_tasks(char *command) {
     char *parsed_command[LINE_COMMAND_SIZE];
     parse_command(parsed_command, command, EMPTY_STRING);
-
     if (!strcmp(parsed_command[0], CD_STR)) {
         chdir(parsed_command[1]);
     } else if (!strcmp(parsed_command[0], PROMPT_STR)) {
@@ -254,6 +268,7 @@ void parse_if_statement(char *if_command) {
         }
     }
 }
+
 
 void set_variable(char *name, char *value) {
     int sv = setenv(name, value, 1);
