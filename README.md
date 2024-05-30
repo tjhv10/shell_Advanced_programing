@@ -112,8 +112,11 @@ echo $myvar
 
 ### Reading Input
 ```sh
-read myvar
+read name
+hello
+echo $name
+hello
 ```
-This command reads a line from standard input and assigns it to the variable `myvar`.
+This command reads a line from standard input and assigns it to the variable `name` Then we can use it (in this case we will print it).
 ```
 
