@@ -2,8 +2,8 @@
 # shell_Advanced_programing
 
 Written by:
-1.Achiya Ben Natan 213934599
-2.Nisim Atiya 207302027
+1. Achiya Ben Natan 213934599
+2. Nisim Atiya 207302027
 3.
 
 This assignment includes a shell program that supports the following actions:
