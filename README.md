@@ -13,15 +13,14 @@ This assignment includes a shell program that supports the following actions:
 4. Running the same command again - `!!`
 5. Built-in shell commands
 6. Command to change the cursor ״hello:״
-7.echo command that prints the arguments
-8."echo $?" command that will print the status of the last command executed
-9."!!" command that repeats the last command
-10."quit" command to exit the shell
-11.Adding variables
-12."read" command
-13.command for flow control, i.e. IF/ELSE.
-14.Memory of the last commands (at least 20). Option to browse by
-Arrows
+7. echo command that prints the arguments
+8. "echo $?" command that will print the status of the last command executed
+9. "!!" command that repeats the last command
+10. "quit" command to exit the shell
+11. Adding variables
+12. "read" command
+13. command for flow control, i.e. IF/ELSE.
+14. Memory of the last commands (at least 20). Option to browse by Arrows
 
 ## Installation
 
