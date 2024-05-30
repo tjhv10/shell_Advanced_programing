@@ -4,7 +4,7 @@
 Written by:
 1. Achiya Ben Natan 213934599
 2. Nisim Atiya 207302027
-3.
+3. Nitay levy 319096251
 
 This assignment includes a shell program that supports the following actions:
 1. Redirect states - `>`, `>>`, `2>`
