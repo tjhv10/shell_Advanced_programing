@@ -46,62 +46,57 @@ To use the program, run on terminal the following command:
 #### Redirect States
 1. **Output Redirection**:
     ```sh
-    ls > output.txt
+    ls > file.txt
     ```
-    This command will write the output of `ls` to `output.txt`.
+    This command will write the output of `ls` to `file.txt`.
 
 2. **Append Redirection**:
     ```sh
-    echo "Hello, World!" >> output.txt
+    echo "Hello, World!" >> file.txt
     ```
-    This command will append "Hello, World!" to `output.txt`.
+    This command will append "Hello, World!" to `file.txt`.
 
 3. **Error Redirection**:
     ```sh
-    ls non_existent_dir 2> error.txt
+    ls  nofile 2> mylog.txt
     ```
-    This command will write the error message of `ls` to `error.txt`.
+    This command will write the error message of `ls` to `mylog.txt`.
 
 #### Piping
 ```sh
-ls | grep myfile | sort
+cat colors.txt | cat | cat | cat
 ```
-This command will list the files, filter those containing "myfile", and sort the results.
+This command will print the colors.txt to the terminal.
 
 #### If/Else Command
 ```sh
-if ls myfile.txt
+if date | grep Fri
 then
-    echo "File exists"
+  echo "Shabat Shalom"
 else
-    echo "File does not exist"
+  echo "Hard way to go"
 fi
 ```
-This command checks if `myfile.txt` exists and prints an appropriate message.
+This command checks if it's Saturday today  and prints an appropriate message.
 
 #### Running the Same Command Again
 ```sh
-ls
-!!  # Runs `ls` again
+pwd
+!!  
 ```
 The `!!` command repeats the last executed command.
 
 #### Entering Directories
 ```sh
-cd /path/to/directory
+cd /fils/directory1/directory2
 ```
-This command changes the current directory to `/path/to/directory`.
+This command changes the current directory to `/fils/directory1/directory2`.
 
 #### Changing the Shell's Prompt
 ```sh
-prompt new_prompt
+prompt = myprompt
 ```
-This command changes the shell's prompt to `new_prompt`.
-
-### Key Features and Shortcuts
-1. **Arrow Keys**: Use the up and down arrow keys to navigate through the command history.
-2. **Backspace**: Use the backspace key to delete characters while typing a command.
-3. **Control-C**: Press `Ctrl+C` to interrupt the current command and display a custom message.
+This command changes the shell's prompt to `myprompt`.
 
 ### Custom Variables
 You can set and get environment variables within the shell:
@@ -109,6 +104,8 @@ You can set and get environment variables within the shell:
 $myvar = value
 echo $myvar
 ```
+This command saves a variable and assigns it to the `myvar` variable and then we can use it (in this case we will print it).
+
 
 ### Reading Input
 ```sh
