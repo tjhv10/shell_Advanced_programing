@@ -12,6 +12,7 @@
 #define OUT 0
 #define APP 1
 #define IN 2
+#define ERR 3
 #define COMMAND_SIZE 1024
 #define LINE_COMMAND_SIZE 50
 
@@ -204,11 +205,17 @@ void redirect_tasks(char *command, int direction) {
                 fd = open(parsed_command[commands - 1], O_RDONLY, 0660);
                 dup2(fd, 0);
                 break;
+            case ERR:
+                fd = creat(parsed_command[commands - 1], 0660);
+                dup2(fd, 2);
+                break;
             default:
                 break;
         }
         parsed_command[commands - 2] = parsed_command[commands - 1] = NULL;
         execvp(parsed_command[0], parsed_command);
+        perror("execvp");
+        exit(EXIT_FAILURE);
     } else {
         wait(&status);
     }
@@ -385,6 +392,8 @@ int main() {
             pipe_tasks(command);
         } else if (strchr(command, AND)) {
             async_tasks(command);
+        } else if (strstr(command, "2>")) {
+            redirect_tasks(command, ERR);
         } else if (strchr(command, STDOUT_CHR) && !strstr(command, APPEND_STR)) {
             redirect_tasks(command, OUT);
         } else if (strchr(command, STDIN_CHR)) {
@@ -403,3 +412,4 @@ int main() {
 
     return 0;
 }
+
