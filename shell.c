@@ -48,6 +48,7 @@ char *prompt = HELLO;
 char *command_history[HISTORY_SIZE];
 int history_count = 0;
 int history_index = -1;
+int print_prompt_flag = 1;
 
 void c_handler(int);
 void pipe_tasks(char *);
@@ -125,13 +126,8 @@ int parse_command(char **parsed_command, char *cmd, const char *delimiter) {
 }
 
 void c_handler(int sig) {
-    char *msg = CONTROL_C;
-    char final_msg[LINE_COMMAND_SIZE];
-    strcpy(final_msg, msg);
-    strcat(final_msg, prompt);
-    strcat(final_msg, PROMPT_STR_AFTER);
-    strcat(final_msg, END_L_STR);
-    write(1, final_msg, strlen(final_msg));
+    write(1, CONTROL_C, strlen(CONTROL_C));
+    print_prompt_flag = 1;  // Set the flag to print the prompt in the main loop
 }
 
 void pipe_tasks(char *cmd) {
@@ -337,8 +333,11 @@ int main() {
     char command[COMMAND_SIZE], saved_cmd[COMMAND_SIZE];
 
     while (TRUE) {
-        printf("%s: ", prompt);
-        fflush(stdout);
+        if (print_prompt_flag) {
+            printf("%s: ", prompt);
+            fflush(stdout);
+            print_prompt_flag = 0;
+        }
 
         int index = 0;
         char ch;
@@ -406,6 +405,11 @@ int main() {
             redirect_tasks(command, APP);
         } else {
             other_tasks(command);
+        }
+
+        if (!print_prompt_flag) {
+            printf("%s: ", prompt);
+            fflush(stdout);
         }
     }
 
