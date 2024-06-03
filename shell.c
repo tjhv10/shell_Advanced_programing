@@ -138,11 +138,12 @@ void pipe_tasks(char *cmd) {
     char *parsed_command[LINE_COMMAND_SIZE];
     int commands = parse_command(parsed_command, cmd, PIPE_STR);
     char *inner_cmd[LINE_COMMAND_SIZE];
-    int fd[2];
+    int fd[2], fd_in = 0;
     pid_t pid;
 
     for (int i = 0; i < commands; ++i) {
         parse_command(inner_cmd, parsed_command[i], EMPTY_STRING);
+
         if (i != commands - 1) {
             if (pipe(fd) == -1) {
                 perror("pipe");
@@ -158,8 +159,8 @@ void pipe_tasks(char *cmd) {
 
         if (pid == 0) {
             if (i != 0) {
-                dup2(fd[0], 0);
-                close(fd[0]);
+                dup2(fd_in, 0);
+                close(fd_in);
             }
             if (i != commands - 1) {
                 dup2(fd[1], 1);
@@ -169,11 +170,14 @@ void pipe_tasks(char *cmd) {
             perror("execvp");
             exit(EXIT_FAILURE);
         } else {
-            wait(NULL);
+            if (i != 0) {
+                close(fd_in);
+            }
             if (i != commands - 1) {
                 close(fd[1]);
-                fd[0] = fd[0];
+                fd_in = fd[0];
             }
+            wait(NULL);
         }
     }
 }
