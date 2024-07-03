@@ -22,7 +22,7 @@
 #define END_L_CHR '\0'
 
 #define QUIT "quit"
-#define HELLO "hello"
+#define HELLO "hello: "
 #define CONTROL_C "You typed Control-C!\n"
 
 #define PIPE_STR "|"
@@ -49,6 +49,7 @@ char *command_history[HISTORY_SIZE];
 int history_count = 0;
 int history_index = -1;
 int print_prompt_flag = 1;
+volatile sig_atomic_t ctrl_c_pressed = 0; // Global flag for Ctrl+C
 
 void c_handler(int);
 void pipe_tasks(char *);
@@ -126,7 +127,10 @@ int parse_command(char **parsed_command, char *cmd, const char *delimiter) {
 }
 
 void c_handler(int sig) {
+    ctrl_c_pressed = 1;
     write(1, CONTROL_C, strlen(CONTROL_C));
+    write(1, prompt, strlen(prompt)); 
+    // write(1, ": \n", 2);
     print_prompt_flag = 1;  // Set the flag to print the prompt in the main loop
 }
 
@@ -153,12 +157,12 @@ void pipe_tasks(char *cmd) {
             exit(EXIT_FAILURE);
         }
 
-        if (pid == 0) { 
-            if (i != 0) {
+        if (pid == 0) { // Child process
+            if (i != 0) { // Not the first command
                 dup2(fd_in, 0);
                 close(fd_in);
             }
-            if (i != commands - 1) { 
+            if (i != commands - 1) { // Not the last command
                 dup2(fd[1], 1);
                 close(fd[1]);
             }
@@ -173,7 +177,7 @@ void pipe_tasks(char *cmd) {
                 close(fd[1]);
                 fd_in = fd[0];
             }
-            wait(&status);
+            wait(&status); // Wait for the child to finish
         }
     }
 }
@@ -292,6 +296,12 @@ void parse_if_statement(char *if_command) {
 
     char line[COMMAND_SIZE];
     while (TRUE) {
+        if (ctrl_c_pressed) { // Check if Ctrl+C was pressed
+            ctrl_c_pressed = 0; // Reset the flag
+            print_prompt_flag = 1; // Set the flag to print the prompt
+            return; // Exit the if block
+        }
+
         printf("> ");
         fflush(stdout); // Ensure the prompt is printed immediately
 
@@ -354,7 +364,7 @@ char *get_variable(char *name) {
 
 void clear_line() {
     printf("\033[2K\033[1G"); // Clear line and move cursor to the beginning
-    printf("%s: ", prompt);
+    printf("%s", prompt);
     fflush(stdout);
 }
 
@@ -370,19 +380,20 @@ int main() {
 
     while (TRUE) {
         if (print_prompt_flag) {
-            printf("%s: ", prompt);
+            printf("%s", prompt);
             fflush(stdout);
             print_prompt_flag = 0;
         }
 
         int index = 0;
         char ch;
+        
         while (read(STDIN_FILENO, &ch, 1) == 1) {
             if (ch == '\n') {
                 command[index] = END_L_CHR;
                 printf("\n");
                 break;
-            } else if (ch == 27) { 
+            } else if (ch == 27) { // Arrow keys
                 char seq[3];
                 if (read(STDIN_FILENO, &seq[0], 1) == 1 && read(STDIN_FILENO, &seq[1], 1) == 1) {
                     if (seq[0] == '[') {
@@ -399,7 +410,7 @@ int main() {
                         }
                     }
                 }
-            } else if (ch == 127 || ch == '\b') { 
+            } else if (ch == 127 || ch == '\b') { // Backspace key
                 if (index > 0) {
                     index--;
                     command[index] = '\0';
@@ -444,7 +455,7 @@ int main() {
         }
 
         if (!print_prompt_flag) {
-            printf("%s: ", prompt);
+            printf("%s", prompt);
             fflush(stdout);
         }
     }
