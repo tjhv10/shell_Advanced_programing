@@ -130,7 +130,6 @@ void c_handler(int sig) {
     ctrl_c_pressed = 1;
     write(1, CONTROL_C, strlen(CONTROL_C));
     write(1, prompt, strlen(prompt)); 
-    // write(1, ": \n", 2);
     print_prompt_flag = 1;  // Set the flag to print the prompt in the main loop
 }
 
@@ -139,7 +138,8 @@ void pipe_tasks(char *cmd) {
     int commands = parse_command(parsed_command, cmd, PIPE_STR);
     char *inner_cmd[LINE_COMMAND_SIZE];
     int fd[2], fd_in = 0;
-    pid_t pid;
+    pid_t pid, pids[LINE_COMMAND_SIZE];
+    int num_pids = 0;
 
     for (int i = 0; i < commands; ++i) {
         parse_command(inner_cmd, parsed_command[i], EMPTY_STRING);
@@ -170,6 +170,7 @@ void pipe_tasks(char *cmd) {
             perror("execvp");
             exit(EXIT_FAILURE);
         } else { // Parent process
+            pids[num_pids++] = pid;
             if (i != 0) {
                 close(fd_in);
             }
@@ -177,8 +178,11 @@ void pipe_tasks(char *cmd) {
                 close(fd[1]);
                 fd_in = fd[0];
             }
-            wait(&status); // Wait for the child to finish
         }
+    }
+
+    for (int i = 0; i < num_pids; ++i) {
+        waitpid(pids[i], &status, 0); // Wait for each child process to finish
     }
 }
 
