@@ -10,4 +10,4 @@ shell.o: shell.c
 	$(CC) $(CFLAGS) -c shell.c
 
 clean:
-	rm -f *.o  shell
+	rm -f *.o  shell myshell

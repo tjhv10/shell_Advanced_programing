@@ -153,19 +153,19 @@ void pipe_tasks(char *cmd) {
             exit(EXIT_FAILURE);
         }
 
-        if (pid == 0) {
+        if (pid == 0) { 
             if (i != 0) {
                 dup2(fd_in, 0);
                 close(fd_in);
             }
-            if (i != commands - 1) {
+            if (i != commands - 1) { 
                 dup2(fd[1], 1);
                 close(fd[1]);
             }
             execvp(inner_cmd[0], inner_cmd);
             perror("execvp");
             exit(EXIT_FAILURE);
-        } else {
+        } else { // Parent process
             if (i != 0) {
                 close(fd_in);
             }
@@ -173,7 +173,7 @@ void pipe_tasks(char *cmd) {
                 close(fd[1]);
                 fd_in = fd[0];
             }
-            wait(NULL);
+            wait(&status);
         }
     }
 }
@@ -253,6 +253,29 @@ void other_tasks(char *command) {
     }
 }
 
+void set_terminal_echo(int enable) {
+    struct termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    if (enable) {
+        tty.c_lflag |= ECHO;
+    } else {
+        tty.c_lflag &= ~ECHO;
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+}
+
+// Function to enable or disable canonical mode
+void set_terminal_canonical(int enable) {
+    struct termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    if (enable) {
+        tty.c_lflag |= ICANON;
+    } else {
+        tty.c_lflag &= ~ICANON;
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+}
+
 void parse_if_statement(char *if_command) {
     char *parsed_command[LINE_COMMAND_SIZE];
     parse_command(parsed_command, if_command, EMPTY_STRING);
@@ -261,6 +284,7 @@ void parse_if_statement(char *if_command) {
     char else_block[COMMAND_SIZE] = "";
     int in_then = 0, in_else = 0;
 
+    // Extract condition from the command
     for (int i = 1; parsed_command[i] != NULL; i++) {
         strcat(condition, parsed_command[i]);
         strcat(condition, " ");
@@ -269,25 +293,19 @@ void parse_if_statement(char *if_command) {
     char line[COMMAND_SIZE];
     while (TRUE) {
         printf("> ");
-        fflush(stdout); // Ensure prompt is printed immediately
-        int index = 0;
-        char ch;
-        while (read(STDIN_FILENO, &ch, 1) == 1) {
-            if (ch == '\n') {
-                line[index] = END_L_CHR;
-                printf("\n");
-                break;
-            } else if (ch == 127 || ch == '\b') { // Handle backspace
-                if (index > 0) {
-                    index--;
-                    line[index] = END_L_CHR;
-                    printf("\b \b"); // Move back, overwrite with space, move back again
-                }
-            } else {
-                line[index++] = ch;
-                write(STDOUT_FILENO, &ch, 1); // Echo the character back to the terminal
-            }
-        }
+        fflush(stdout); // Ensure the prompt is printed immediately
+
+        // Enable terminal echo and canonical mode to read input visibly
+        set_terminal_echo(1);
+        set_terminal_canonical(1);
+
+        fgets(line, COMMAND_SIZE, stdin);
+
+        // Restore terminal settings
+        set_terminal_echo(0);
+        set_terminal_canonical(0);
+
+        line[strlen(line) - 1] = END_L_CHR;
 
         if (strcmp(line, "then") == 0) {
             in_then = 1;
@@ -307,7 +325,7 @@ void parse_if_statement(char *if_command) {
         }
     }
 
-    if (system(condition) == 0) {
+    if (system(condition) == 0) { // condition is true
         if (strchr(then_block, PIPE_CHR)) {
             pipe_tasks(then_block);
         } else {
@@ -321,6 +339,7 @@ void parse_if_statement(char *if_command) {
         }
     }
 }
+
 
 void set_variable(char *name, char *value) {
     int sv = setenv(name, value, 1);
@@ -363,7 +382,7 @@ int main() {
                 command[index] = END_L_CHR;
                 printf("\n");
                 break;
-            } else if (ch == 27) { // Arrow keys
+            } else if (ch == 27) { 
                 char seq[3];
                 if (read(STDIN_FILENO, &seq[0], 1) == 1 && read(STDIN_FILENO, &seq[1], 1) == 1) {
                     if (seq[0] == '[') {
@@ -380,7 +399,7 @@ int main() {
                         }
                     }
                 }
-            } else if (ch == 127 || ch == '\b') { // Backspace key
+            } else if (ch == 127 || ch == '\b') { 
                 if (index > 0) {
                     index--;
                     command[index] = '\0';
@@ -437,4 +456,3 @@ int main() {
 
     return 0;
 }
-
